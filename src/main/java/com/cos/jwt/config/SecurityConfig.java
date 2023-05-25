@@ -2,8 +2,6 @@ package com.cos.jwt.config;
 
 import com.cos.jwt.config.jwt.JwtAuthenticationFilter;
 import com.cos.jwt.config.jwt.JwtAuthorizationFilter;
-import com.cos.jwt.filter.MyFilter1;
-import com.cos.jwt.filter.MyFilter3;
 import com.cos.jwt.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,15 +30,10 @@ public class SecurityConfig {
     @Autowired
     private final CorsConfig corsConfig;
 
-//    @Bean
-//    public BCryptPasswordEncoder passwordEncoder(){
-//        return new BCryptPasswordEncoder();
-//    }
-
     @Bean
     SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         return http
-                .addFilterBefore(new MyFilter3(), BasicAuthenticationFilter.class)
+//                .addFilterBefore(new MyFilter3(), BasicAuthenticationFilter.class)
                 .csrf().disable()
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
