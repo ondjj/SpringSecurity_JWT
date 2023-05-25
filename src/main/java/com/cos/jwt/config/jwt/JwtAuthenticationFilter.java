@@ -16,6 +16,7 @@ import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.Date;
 
@@ -33,7 +34,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response)
             throws AuthenticationException {
 
-        System.out.println("JwtAuthenticationFilter : 진입");
+        System.out.println("JwtAuthenticationFilter : 진입 - 로그인 시도중");
 
         // 1. username, password 받아서
         // 2. 정상인지 로그인 시도를 하자. authenticationManager로 로그인 시도를 하면
@@ -71,23 +72,29 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         Authentication authentication =
                 authenticationManager.authenticate(authenticationToken);
 
-        PrincipalDetails principalDetailis = (PrincipalDetails) authentication.getPrincipal();
-        System.out.println("Authentication : "+principalDetailis.getUser().getUsername());
+        // authentication 객체가 session 영역에 저장됨
+        PrincipalDetails principalDetails = (PrincipalDetails) authentication.getPrincipal();
+        System.out.println("Authentication : "+principalDetails.getUser().getUsername());
+        // authentication 객체가 session 영역에 저장을 해야하고 그 방법은 return 해주면 됨
         return authentication;
     }
 
     // JWT Token 생성해서 response에 담아주기
+    // attemptAuthentication 실행 후 인증이 정상적으로 되었으면 실행되는 함수
+    // JWT 토큰을 만들어서 request 요청한 사용자에게 JWT 토큰을 response 해주면 됨
     @Override
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain,
                                             Authentication authResult) throws IOException, ServletException {
 
-        PrincipalDetails principalDetailis = (PrincipalDetails) authResult.getPrincipal();
+        System.out.println("successfulAuthentication 실행됨 : 인증이 완료되었다는 뜻 !");
+        PrincipalDetails principalDetails = (PrincipalDetails) authResult.getPrincipal();
 
+        // Hash 암호 방식
         String jwtToken = JWT.create()
-                .withSubject(principalDetailis.getUsername())
+                .withSubject(principalDetails.getUsername())
                 .withExpiresAt(new Date(System.currentTimeMillis()+JwtProperties.EXPIRATION_TIME))
-                .withClaim("id", principalDetailis.getUser().getId())
-                .withClaim("username", principalDetailis.getUser().getUsername())
+                .withClaim("id", principalDetails.getUser().getId())
+                .withClaim("username", principalDetails.getUser().getUsername())
                 .sign(Algorithm.HMAC512(JwtProperties.SECRET));
 
         response.addHeader(JwtProperties.HEADER_STRING, JwtProperties.TOKEN_PREFIX+jwtToken);
